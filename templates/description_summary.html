@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Description Summary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Sum per Description Group</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv">
+        <button type="submit">Upload CSV</button>
+    </form>
+    {% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Description Group</th>
+                <th>Sum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in records %}
+            <tr>
+                <td>{{ row.desc_group }}</td>
+                <td>{{ '{:,.2f}'.format(row._amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif records is not none %}
+        <p>No data found.</p>
+    {% endif %}
+</body>
+</html>

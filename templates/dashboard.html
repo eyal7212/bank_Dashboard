@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <a href="{{ url_for('index') }}" class="back">&larr; Back</a>
+    <h1>Bank Dashboard</h1>
+    <div class="tabs">
+      <button class="tab-btn" onclick="showTab('dashboard')" id="dashboard-tab">Dashboard</button>
+      <button class="tab-btn" onclick="showTab('desc-summary')" id="desc-summary-tab">Description Summary</button>
+    </div>
+    <div id="dashboard-view">
+      <div class="cards">
+        <div class="card"><div class="label">Total Inflow</div><div class="value">${{ '{:,.2f}'.format(kpis.total_in) }}</div></div>
+        <div class="card"><div class="label">Total Outflow</div><div class="value">${{ '{:,.2f}'.format(kpis.total_out) }}</div></div>
+        <div class="card net"><div class="label">Net</div><div class="value">${{ '{:,.2f}'.format(kpis.net) }}</div></div>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h2>Monthly Net</h2>
+          {% if trend_json %}
+            <div id="trend"></div>
+            <script>
+              var trendData = JSON.parse('{{ trend_json | safe }}');
+              Plotly.newPlot('trend', trendData.data, trendData.layout);
+            </script>
+          {% else %}
+            <p>No dates found in CSV to build a monthly trend.</p>
+          {% endif %}
+        </div>
+        <div class="panel">
+          <h2>Top Spend by Category</h2>
+          <div id="pie"></div>
+          <script>
+            var pieData = JSON.parse('{{ pie_json | safe }}');
+            Plotly.newPlot('pie', pieData.data, pieData.layout);
+          </script>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Latest Transactions</h2>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                {% for col in columns %}<th>{{ col }}</th>{% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in table %}
+                <tr>
+                  {% for col in columns %}
+                    <td>{{ row[col] }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="desc-summary-view" style="display:none;">
+      <div class="panel">
+        <h2>Description Summary (Sum by First Two Words)</h2>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Description Group</th>
+                <th>Sum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in desc_summary %}
+                <tr>
+                  <td>{{ row.desc_group }}</td>
+                  <td>{{ '{:,.2f}'.format(row._amount) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+    <script>
+      function showTab(tab) {
+        document.getElementById('dashboard-view').style.display = tab === 'dashboard' ? '' : 'none';
+        document.getElementById('desc-summary-view').style.display = tab === 'desc-summary' ? '' : 'none';
+        document.getElementById('dashboard-tab').classList.toggle('active', tab === 'dashboard');
+        document.getElementById('desc-summary-tab').classList.toggle('active', tab === 'desc-summary');
+      }
+      // Default to dashboard tab
+      showTab('dashboard');
+    </script>
+</body>
+</html>
